@@ -3,7 +3,17 @@
 
 #include <WProgram.h>
 
-static int ds3231_i2c_addr = 0x68;
+// i2c slave address of the DS3231 chip
+#define DS3231_I2C_ADDR             0x68
+
+// timekeeping registers
+#define DS3231_TIME_CAL_ADDR        0x00
+#define DS3231_ALARM1_ADDR          0x07
+#define DS3231_ALARM2_ADDR          0x0B
+#define DS3231_CONTROL_ADDR         0x0E
+#define DS3231_STATUS_ADDR          0x0F
+#define DS3231_AGING_OFFSET_ADDR    0x10
+#define DS3231_TEMPERATURE_ADDR     0x11
 
 void DS3231_init(uint8_t creg);
 void DS3231_set(uint8_t s, uint8_t mi, uint8_t h, uint8_t dw,
@@ -28,7 +38,6 @@ void DS3231_set_a1(uint8_t s, uint8_t mi, uint8_t h, uint8_t d,
 void DS3231_get_a1(char *buf, size_t len);
 void DS3231_set_a2(uint8_t mi, uint8_t h, uint8_t d, boolean * flags);
 void DS3231_get_a2(char *buf, size_t len);
-
 
 // helpers
 uint8_t dectobcd(uint8_t val);

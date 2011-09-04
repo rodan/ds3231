@@ -40,7 +40,7 @@ void loop()
             parse_cmd(recv, recv_size);
             recv_size = 0;
             recv[0] = 0;
-        } else if (in < 48 || in > 122) { // ~[0-9A-Za-z]
+        } else if (in < 48 || in > 122) {       // ~[0-9A-Za-z]
             // ignore 
         } else if (recv_size > H_MAX - 2) {
             // drop

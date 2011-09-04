@@ -34,10 +34,10 @@ void DS3231_set(uint8_t s, uint8_t mi, uint8_t h, uint8_t dw,
 
     uint8_t TimeDate[7] = { s, mi, h, dw, d, mo, year_short };
 
-    Wire.beginTransmission(ds3231_i2c_addr);
-    Wire.send(byte(0x00));
+    Wire.beginTransmission((uint8_t) DS3231_I2C_ADDR);
+    Wire.send((uint8_t) DS3231_TIME_CAL_ADDR);
     for (i = 0; i <= 6; i++) {
-        TimeDate[i]=dectobcd(TimeDate[i]);
+        TimeDate[i] = dectobcd(TimeDate[i]);
         if (i == 5)
             TimeDate[5] += century;
         Wire.send(TimeDate[i]);
@@ -56,34 +56,31 @@ void DS3231_get(unsigned char type, char *buf, size_t len)
     uint8_t i, n;
     uint16_t year_full;
 
-    Wire.beginTransmission(ds3231_i2c_addr);
-    Wire.send(byte(0x00));
+    Wire.beginTransmission((uint8_t) DS3231_I2C_ADDR);
+    Wire.send((uint8_t) DS3231_TIME_CAL_ADDR);
     Wire.endTransmission();
 
-    Wire.requestFrom(ds3231_i2c_addr, 7);
+    Wire.requestFrom((uint8_t) DS3231_I2C_ADDR, (uint8_t) 7);
 
     for (i = 0; i <= 6; i++) {
         n = Wire.receive();
         if (i == 5) {
             TimeDate[5] = bcdtodec(n) & 0x1F;
-            century = (n & 0x80 ) >> 7;
-            }
-        else
+            century = (n & 0x80) >> 7;
+        } else
             TimeDate[i] = bcdtodec(n);
     }
 
-    if ( century == 1 )
+    if (century == 1)
         year_full = 2000 + TimeDate[6];
     else
         year_full = 1900 + TimeDate[6];
 
     if (type == 0) {
         snprintf(buf, len, "%02d:%02d:%02d %d%02d%02d", TimeDate[2],
-                 TimeDate[1], TimeDate[0], year_full, TimeDate[5],
-                 TimeDate[4]);
+                 TimeDate[1], TimeDate[0], year_full, TimeDate[5], TimeDate[4]);
     } else if (type == 1) {
-        snprintf(buf, len, "%d%02d%02d", year_full, TimeDate[5],
-                 TimeDate[4]);
+        snprintf(buf, len, "%d%02d%02d", year_full, TimeDate[5], TimeDate[4]);
     } else if (type == 2) {
         snprintf(buf, len, "%d", TimeDate[4]);
     } else if (type == 3) {
@@ -97,8 +94,8 @@ void DS3231_get(unsigned char type, char *buf, size_t len)
 
 void DS3231_set_creg(uint8_t val)
 {
-    Wire.beginTransmission(ds3231_i2c_addr);
-    Wire.send(byte(0x0E));
+    Wire.beginTransmission((uint8_t) DS3231_I2C_ADDR);
+    Wire.send((uint8_t) DS3231_CONTROL_ADDR);
     Wire.send(val);
     Wire.endTransmission();
 }
@@ -115,8 +112,8 @@ bit0 A1F      Alarm 1 Flag - (1 if alarm1 was triggered)
 
 void DS3231_set_sreg(uint8_t val)
 {
-    Wire.beginTransmission(ds3231_i2c_addr);
-    Wire.send(byte(0x0F));
+    Wire.beginTransmission((uint8_t) DS3231_I2C_ADDR);
+    Wire.send((uint8_t) DS3231_STATUS_ADDR);
     Wire.send(val);
     Wire.endTransmission();
 }
@@ -125,11 +122,11 @@ uint8_t DS3231_get_sreg()
 {
     uint8_t rv;
 
-    Wire.beginTransmission(ds3231_i2c_addr);
-    Wire.send(byte(0x0F));
+    Wire.beginTransmission((uint8_t) DS3231_I2C_ADDR);
+    Wire.send((uint8_t) DS3231_STATUS_ADDR);
     Wire.endTransmission();
 
-    Wire.requestFrom(ds3231_i2c_addr, 1);
+    Wire.requestFrom((uint8_t) DS3231_I2C_ADDR, (uint8_t) 1);
     rv = Wire.receive();
 
     return rv;
@@ -144,10 +141,10 @@ void DS3231_set_aging(int8_t val)
     if (val >= 0)
         reg = val;
     else
-        reg = ~(-val) + 1;    // 2C
+        reg = ~(-val) + 1;      // 2C
 
-    Wire.beginTransmission(ds3231_i2c_addr);
-    Wire.send(byte(0x10));
+    Wire.beginTransmission((uint8_t) DS3231_I2C_ADDR);
+    Wire.send((uint8_t) DS3231_AGING_OFFSET_ADDR);
     Wire.send(reg);
     Wire.endTransmission();
 }
@@ -157,11 +154,11 @@ int8_t DS3231_get_aging()
     uint8_t reg;
     int8_t rv;
 
-    Wire.beginTransmission(ds3231_i2c_addr);
-    Wire.send(byte(0x10));
+    Wire.beginTransmission((uint8_t) DS3231_I2C_ADDR);
+    Wire.send((uint8_t) DS3231_AGING_OFFSET_ADDR);
     Wire.endTransmission();
 
-    Wire.requestFrom(ds3231_i2c_addr, 1);
+    Wire.requestFrom((uint8_t) DS3231_I2C_ADDR, (uint8_t) 1);
     reg = Wire.receive();
 
     if ((reg & B10000000) != 0)
@@ -180,16 +177,16 @@ float DS3231_get_treg()
     uint8_t temp_msb, temp_lsb;
     int8_t nint;
 
-    Wire.beginTransmission(ds3231_i2c_addr);
-    Wire.send(byte(0x11));
+    Wire.beginTransmission((uint8_t) DS3231_I2C_ADDR);
+    Wire.send((uint8_t) DS3231_TEMPERATURE_ADDR);
     Wire.endTransmission();
 
-    Wire.requestFrom(ds3231_i2c_addr, 2);
+    Wire.requestFrom((uint8_t) DS3231_I2C_ADDR, (uint8_t) 2);
     temp_msb = Wire.receive();
     temp_lsb = Wire.receive() >> 6;
 
     if ((temp_msb & B10000000) != 0)
-        nint = temp_msb | ~((1 << 8) - 1);     // if negative get two's complement
+        nint = temp_msb | ~((1 << 8) - 1);      // if negative get two's complement
     else
         nint = temp_msb;
 
@@ -202,14 +199,13 @@ float DS3231_get_treg()
 
 // flags are: A1M1 (seconds), A1M2 (minutes), A1M3 (hour), 
 // A1M4 (day) 0 to enable, 1 to disable, DY/DT (dayofweek == 1/dayofmonth == 0)
-void DS3231_set_a1(uint8_t s, uint8_t mi, uint8_t h, uint8_t d,
-                   boolean * flags)
+void DS3231_set_a1(uint8_t s, uint8_t mi, uint8_t h, uint8_t d, boolean * flags)
 {
     uint8_t t[4] = { s, mi, h, d };
     uint8_t i;
 
-    Wire.beginTransmission(ds3231_i2c_addr);
-    Wire.send(byte(0x07));
+    Wire.beginTransmission((uint8_t) DS3231_I2C_ADDR);
+    Wire.send((uint8_t) DS3231_ALARM1_ADDR);
 
     for (i = 0; i <= 3; i++) {
         if (i == 3) {
@@ -228,11 +224,11 @@ void DS3231_get_a1(char *buf, size_t len)
     boolean f[5];               // flags
     uint8_t i;
 
-    Wire.beginTransmission(ds3231_i2c_addr);
-    Wire.send(byte(0x07));
+    Wire.beginTransmission((uint8_t) DS3231_I2C_ADDR);
+    Wire.send((uint8_t) DS3231_ALARM1_ADDR);
     Wire.endTransmission();
 
-    Wire.requestFrom(ds3231_i2c_addr, 4);
+    Wire.requestFrom((uint8_t) DS3231_I2C_ADDR, (uint8_t) 4);
 
     for (i = 0; i <= 3; i++) {
         n[i] = Wire.receive();
@@ -251,14 +247,13 @@ void DS3231_get_a1(char *buf, size_t len)
 }
 
 // flags are: A2M2 (minutes), A2M3 (hour), A2M4 (day) 0 to enable, 1 to disable, DY/DT (dayofweek == 1/dayofmonth == 0) - 
-void DS3231_set_a2(uint8_t mi, uint8_t h, uint8_t d,
-                   boolean * flags)
+void DS3231_set_a2(uint8_t mi, uint8_t h, uint8_t d, boolean * flags)
 {
     uint8_t t[3] = { mi, h, d };
     uint8_t i;
 
-    Wire.beginTransmission(ds3231_i2c_addr);
-    Wire.send(byte(0x0B));
+    Wire.beginTransmission((uint8_t) DS3231_I2C_ADDR);
+    Wire.send((uint8_t) DS3231_ALARM2_ADDR);
 
     for (i = 0; i <= 2; i++) {
         if (i == 2) {
@@ -277,11 +272,11 @@ void DS3231_get_a2(char *buf, size_t len)
     boolean f[4];               // flags
     uint8_t i;
 
-    Wire.beginTransmission(ds3231_i2c_addr);
-    Wire.send(byte(0x0B));
+    Wire.beginTransmission((uint8_t) DS3231_I2C_ADDR);
+    Wire.send((uint8_t) DS3231_ALARM2_ADDR);
     Wire.endTransmission();
 
-    Wire.requestFrom(ds3231_i2c_addr, 3);
+    Wire.requestFrom((uint8_t) DS3231_I2C_ADDR, (uint8_t) 3);
 
     for (i = 0; i <= 2; i++) {
         n[i] = Wire.receive();
@@ -301,11 +296,10 @@ void DS3231_get_a2(char *buf, size_t len)
 
 uint8_t dectobcd(uint8_t val)
 {
-  return ( (val/10*16) + (val%10) );
+    return ((val / 10 * 16) + (val % 10));
 }
 
 uint8_t bcdtodec(uint8_t val)
 {
-  return ( (val/16*10) + (val%16) );
+    return ((val / 16 * 10) + (val % 16));
 }
-
