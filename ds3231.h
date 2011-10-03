@@ -15,14 +15,30 @@
 #define DS3231_AGING_OFFSET_ADDR    0x10
 #define DS3231_TEMPERATURE_ADDR     0x11
 
+struct ts {
+    int sec;         /* seconds */
+    int min;         /* minutes */
+    int hour;        /* hours */
+    int mday;        /* day of the month */
+    int mon;         /* month */
+    int year;        /* year */
+    int wday;        /* day of the week */
+    int yday;        /* day in the year */
+    int isdst;       /* daylight saving time */
+};
+
 void DS3231_init(uint8_t creg);
 void DS3231_set(uint8_t s, uint8_t mi, uint8_t h, uint8_t dw,
                 uint8_t d, uint8_t mo, uint16_t y);
 void DS3231_get(unsigned char type, char *buf, size_t len);
+void DS3231_get(struct ts *t);
+
+void DS3231_set_addr(uint8_t addr, uint8_t val);
+uint8_t DS3231_get_addr(uint8_t addr);
 
 // control/status register
 void DS3231_set_creg(uint8_t val);
-void DS3231_set_sreg(uint8_t mask);
+void DS3231_set_sreg(uint8_t val);
 uint8_t DS3231_get_sreg();
 
 // aging offset register

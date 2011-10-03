@@ -65,7 +65,7 @@ void DS3231_get(unsigned char type, char *buf, size_t len)
     for (i = 0; i <= 6; i++) {
         n = Wire.receive();
         if (i == 5) {
-            TimeDate[5] = bcdtodec(n) & 0x1F;
+            TimeDate[5] = bcdtodec(n & 0x1F);
             century = (n & 0x80) >> 7;
         } else
             TimeDate[i] = bcdtodec(n);
@@ -89,6 +89,66 @@ void DS3231_get(unsigned char type, char *buf, size_t len)
                  TimeDate[0]);
     }
 }
+
+void DS3231_get(struct ts *t)
+{
+    uint8_t TimeDate[7];        //second,minute,hour,dow,day,month,year
+    uint8_t century = 0;
+    uint8_t i, n;
+    uint16_t year_full;
+
+    Wire.beginTransmission((uint8_t) DS3231_I2C_ADDR);
+    Wire.send((uint8_t) DS3231_TIME_CAL_ADDR);
+    Wire.endTransmission();
+
+    Wire.requestFrom((uint8_t) DS3231_I2C_ADDR, (uint8_t) 7);
+
+    for (i = 0; i <= 6; i++) {
+        n = Wire.receive();
+        if (i == 5) {
+            TimeDate[5] = bcdtodec(n & 0x1F);
+            century = (n & 0x80) >> 7;
+        } else
+            TimeDate[i] = bcdtodec(n);
+    }
+
+    if (century == 1)
+        year_full = 2000 + TimeDate[6];
+    else
+        year_full = 1900 + TimeDate[6];
+
+    t->sec = TimeDate[0];
+    t->min = TimeDate[1];
+    t->hour = TimeDate[2];
+    t->mday = TimeDate[4];
+    t->mon = TimeDate[5];
+    t->year = TimeDate[6];
+    t->wday = TimeDate[3];
+}
+
+void DS3231_set_addr(uint8_t addr, uint8_t val)
+{
+    Wire.beginTransmission((uint8_t) DS3231_I2C_ADDR);
+    Wire.send(addr);
+    Wire.send(val);
+    Wire.endTransmission();
+}
+
+uint8_t DS3231_get_addr(uint8_t addr)
+{
+    uint8_t rv;
+
+    Wire.beginTransmission((uint8_t) DS3231_I2C_ADDR);
+    Wire.send((uint8_t) addr);
+    Wire.endTransmission();
+
+    Wire.requestFrom((uint8_t) DS3231_I2C_ADDR, (uint8_t) 1);
+    rv = Wire.receive();
+
+    return rv;
+}
+
+
 
 // control register
 

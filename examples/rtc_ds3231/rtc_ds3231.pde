@@ -114,6 +114,12 @@ void parse_cmd(char *cmd, int cmdsize)
         reg_val = DS3231_get_sreg();
         reg_val &= B11111100;
         DS3231_set_sreg(reg_val);
+    } else if (cmd[0] == 70 && cmdsize == 1) {  // "F" - custom fct
+        reg_val = DS3231_get_addr(0x5);
+        Serial.print("orig ");
+        Serial.print(reg_val,DEC);
+        Serial.print("month is ");
+        Serial.println(bcdtodec(reg_val & 0x1F),DEC);
     } else if (cmd[0] == 71 && cmdsize == 1) {  // "G" - set aging status register
         DS3231_set_aging(0);
     } else if (cmd[0] == 83 && cmdsize == 1) {  // "S" - get status register
