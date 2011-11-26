@@ -19,20 +19,19 @@ void DS3231_init(uint8_t ctrl_reg)
     DS3231_set_creg(ctrl_reg);
 }
 
-void DS3231_set(uint8_t s, uint8_t mi, uint8_t h, uint8_t dw,
-                uint8_t d, uint8_t mo, uint16_t y)
+void DS3231_set(struct ts t)
 {
-    uint8_t i, century, year_short;
+    uint8_t i, century;
 
-    if (y > 2000) {
+    if (t.year > 2000) {
         century = B10000000;
-        year_short = y - 2000;
+        t.year_s = t.year - 2000;
     } else {
         century = 0;
-        year_short = y - 1900;
+        t.year_s = t.year - 1900;
     }
 
-    uint8_t TimeDate[7] = { s, mi, h, dw, d, mo, year_short };
+    uint8_t TimeDate[7] = { t.sec, t.min, t.hour, t.wday, t.mday, t.mon, t.year_s };
 
     Wire.beginTransmission((uint8_t) DS3231_I2C_ADDR);
     Wire.send((uint8_t) DS3231_TIME_CAL_ADDR);
@@ -43,51 +42,6 @@ void DS3231_set(uint8_t s, uint8_t mi, uint8_t h, uint8_t dw,
         Wire.send(TimeDate[i]);
     }
     Wire.endTransmission();
-}
-
-// type==0 returns hh:mm:ss YYMMDD
-// type==1 returns YYYYMMDD
-// type==2 returns D
-// type==3 returns YYYYMMDD hh:mm:ss
-void DS3231_get(unsigned char type, char *buf, size_t len)
-{
-    uint8_t TimeDate[7];        //second,minute,hour,dow,day,month,year
-    uint8_t century = 0;
-    uint8_t i, n;
-    uint16_t year_full;
-
-    Wire.beginTransmission((uint8_t) DS3231_I2C_ADDR);
-    Wire.send((uint8_t) DS3231_TIME_CAL_ADDR);
-    Wire.endTransmission();
-
-    Wire.requestFrom((uint8_t) DS3231_I2C_ADDR, (uint8_t) 7);
-
-    for (i = 0; i <= 6; i++) {
-        n = Wire.receive();
-        if (i == 5) {
-            TimeDate[5] = bcdtodec(n & 0x1F);
-            century = (n & 0x80) >> 7;
-        } else
-            TimeDate[i] = bcdtodec(n);
-    }
-
-    if (century == 1)
-        year_full = 2000 + TimeDate[6];
-    else
-        year_full = 1900 + TimeDate[6];
-
-    if (type == 0) {
-        snprintf(buf, len, "%02d:%02d:%02d %d%02d%02d", TimeDate[2],
-                 TimeDate[1], TimeDate[0], year_full, TimeDate[5], TimeDate[4]);
-    } else if (type == 1) {
-        snprintf(buf, len, "%d%02d%02d", year_full, TimeDate[5], TimeDate[4]);
-    } else if (type == 2) {
-        snprintf(buf, len, "%d", TimeDate[4]);
-    } else if (type == 3) {
-        snprintf(buf, len, "%d%02d%02d %02d:%02d:%02d", year_full,
-                 TimeDate[5], TimeDate[4], TimeDate[2], TimeDate[1],
-                 TimeDate[0]);
-    }
 }
 
 void DS3231_get(struct ts *t)
@@ -122,8 +76,9 @@ void DS3231_get(struct ts *t)
     t->hour = TimeDate[2];
     t->mday = TimeDate[4];
     t->mon = TimeDate[5];
-    t->year = TimeDate[6];
+    t->year = year_full;
     t->wday = TimeDate[3];
+    t->year_s = TimeDate[6];
 }
 
 void DS3231_set_addr(uint8_t addr, uint8_t val)
@@ -363,3 +318,11 @@ uint8_t bcdtodec(uint8_t val)
 {
     return ((val / 16 * 10) + (val % 16));
 }
+
+uint8_t inp2toi(char *cmd, uint16_t seek)
+{
+    uint8_t rv;
+    rv = (cmd[seek] - 48) * 10 + cmd[seek + 1] - 48;
+    return rv;
+}
+
