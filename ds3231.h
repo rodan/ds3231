@@ -1,7 +1,11 @@
 #ifndef __ds3231_h_
 #define __ds3231_h_
 
+#if ARDUINO >= 100
+#include <Arduino.h>
+#else
 #include <WProgram.h>
+#endif
 
 // i2c slave address of the DS3231 chip
 #define DS3231_I2C_ADDR             0x68
@@ -29,10 +33,7 @@ struct ts {
 };
 
 void DS3231_init(uint8_t creg);
-//void DS3231_set(uint8_t s, uint8_t mi, uint8_t h, uint8_t dw,
-//                uint8_t d, uint8_t mo, uint16_t y);
 void DS3231_set(struct ts t);
-//void DS3231_get(unsigned char type, char *buf, size_t len);
 void DS3231_get(struct ts *t);
 
 void DS3231_set_addr(uint8_t addr, uint8_t val);

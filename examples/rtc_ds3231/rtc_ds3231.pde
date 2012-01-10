@@ -2,7 +2,7 @@
 #include "ds3231.h"
 #include "rtc_ds3231.h"
 
-#define BUFF_MAX 126
+#define BUFF_MAX 128
 
 uint8_t time[8];
 char recv[BUFF_MAX];
