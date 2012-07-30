@@ -48,7 +48,6 @@ bit0 A1IE   Alarm1 interrupt enable (1 to enable)
 
 void DS3231_init(uint8_t ctrl_reg)
 {
-    Wire.begin();
     DS3231_set_creg(ctrl_reg);
 }
 

@@ -1,4 +1,5 @@
 
+#include <Wire.h>
 #include "ds3231.h"
 #include "rtc_ds3231.h"
 
@@ -12,6 +13,7 @@ unsigned long prev, interval = 5000;
 void setup()
 {
     Serial.begin(9600);
+    Wire.begin();
     DS3231_init(0x06);
     memset(recv, 0, BUFF_MAX);
     Serial.println("GET time");
