@@ -14,7 +14,7 @@ void setup()
 {
     Serial.begin(9600);
     Wire.begin();
-    DS3231_init(0x06);
+    DS3231_init(DS3231_INTCN);
     memset(recv, 0, BUFF_MAX);
     Serial.println("GET time");
 }
@@ -89,7 +89,7 @@ void parse_cmd(char *cmd, int cmdsize)
         Serial.print("aging reg is ");
         Serial.println(DS3231_get_aging(), DEC);
     } else if (cmd[0] == 65 && cmdsize == 9) {  // "A" set alarm 1
-        DS3231_set_creg(0x05);
+        DS3231_set_creg(DS3231_INTCN | DS3231_A1IE);
         //ASSMMHHDD
         for (i = 0; i < 4; i++) {
             time[i] = (cmd[2 * i + 1] - 48) * 10 + cmd[2 * i + 2] - 48; // ss, mm, hh, dd
@@ -99,7 +99,7 @@ void parse_cmd(char *cmd, int cmdsize)
         DS3231_get_a1(&buff[0], 59);
         Serial.println(buff);
     } else if (cmd[0] == 66 && cmdsize == 7) {  // "B" Set Alarm 2
-        DS3231_set_creg(0x06);
+        DS3231_set_creg(DS3231_INTCN | DS3231_A2IE);
         //BMMHHDD
         for (i = 0; i < 4; i++) {
             time[i] = (cmd[2 * i + 1] - 48) * 10 + cmd[2 * i + 2] - 48; // mm, hh, dd
