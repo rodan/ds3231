@@ -33,6 +33,7 @@
 */
 
 #include <Wire.h>
+#include <stdio.h>
 #include "ds3231.h"
 
 /* control register 0Eh/8Eh
@@ -65,8 +66,8 @@ void DS3231_set(struct ts t)
 
     uint8_t TimeDate[7] = { t.sec, t.min, t.hour, t.wday, t.mday, t.mon, t.year_s };
 
-    Wire.beginTransmission((uint8_t) DS3231_I2C_ADDR);
-    Wire.write((uint8_t) DS3231_TIME_CAL_ADDR);
+    Wire.beginTransmission(DS3231_I2C_ADDR);
+    Wire.write(DS3231_TIME_CAL_ADDR);
     for (i = 0; i <= 6; i++) {
         TimeDate[i] = dectobcd(TimeDate[i]);
         if (i == 5)
@@ -83,11 +84,11 @@ void DS3231_get(struct ts *t)
     uint8_t i, n;
     uint16_t year_full;
 
-    Wire.beginTransmission((uint8_t) DS3231_I2C_ADDR);
-    Wire.write((uint8_t) DS3231_TIME_CAL_ADDR);
+    Wire.beginTransmission(DS3231_I2C_ADDR);
+    Wire.write(DS3231_TIME_CAL_ADDR);
     Wire.endTransmission();
 
-    Wire.requestFrom((uint8_t) DS3231_I2C_ADDR, (uint8_t) 7);
+    Wire.requestFrom(DS3231_I2C_ADDR, 7);
 
     for (i = 0; i <= 6; i++) {
         n = Wire.read();
@@ -115,7 +116,7 @@ void DS3231_get(struct ts *t)
 
 void DS3231_set_addr(const uint8_t addr, const uint8_t val)
 {
-    Wire.beginTransmission((uint8_t) DS3231_I2C_ADDR);
+    Wire.beginTransmission(DS3231_I2C_ADDR);
     Wire.write(addr);
     Wire.write(val);
     Wire.endTransmission();
@@ -125,11 +126,11 @@ uint8_t DS3231_get_addr(const uint8_t addr)
 {
     uint8_t rv;
 
-    Wire.beginTransmission((uint8_t) DS3231_I2C_ADDR);
-    Wire.write((uint8_t) addr);
+    Wire.beginTransmission(DS3231_I2C_ADDR);
+    Wire.write(addr);
     Wire.endTransmission();
 
-    Wire.requestFrom((uint8_t) DS3231_I2C_ADDR, (uint8_t) 1);
+    Wire.requestFrom(DS3231_I2C_ADDR, 1);
     rv = Wire.read();
 
     return rv;
@@ -141,10 +142,7 @@ uint8_t DS3231_get_addr(const uint8_t addr)
 
 void DS3231_set_creg(const uint8_t val)
 {
-    Wire.beginTransmission((uint8_t) DS3231_I2C_ADDR);
-    Wire.write((uint8_t) DS3231_CONTROL_ADDR);
-    Wire.write(val);
-    Wire.endTransmission();
+    DS3231_set_addr(DS3231_CONTROL_ADDR, val);
 }
 
 // status register 0Fh/8Fh
@@ -159,23 +157,13 @@ bit0 A1F      Alarm 1 Flag - (1 if alarm1 was triggered)
 
 void DS3231_set_sreg(const uint8_t val)
 {
-    Wire.beginTransmission((uint8_t) DS3231_I2C_ADDR);
-    Wire.write((uint8_t) DS3231_STATUS_ADDR);
-    Wire.write(val);
-    Wire.endTransmission();
+    DS3231_set_addr(DS3231_STATUS_ADDR, val);
 }
 
 uint8_t DS3231_get_sreg(void)
 {
     uint8_t rv;
-
-    Wire.beginTransmission((uint8_t) DS3231_I2C_ADDR);
-    Wire.write((uint8_t) DS3231_STATUS_ADDR);
-    Wire.endTransmission();
-
-    Wire.requestFrom((uint8_t) DS3231_I2C_ADDR, (uint8_t) 1);
-    rv = Wire.read();
-
+    rv = DS3231_get_addr(DS3231_STATUS_ADDR);
     return rv;
 }
 
@@ -190,10 +178,7 @@ void DS3231_set_aging(const int8_t val)
     else
         reg = ~(-val) + 1;      // 2C
 
-    Wire.beginTransmission((uint8_t) DS3231_I2C_ADDR);
-    Wire.write((uint8_t) DS3231_AGING_OFFSET_ADDR);
-    Wire.write(reg);
-    Wire.endTransmission();
+    DS3231_set_addr(DS3231_AGING_OFFSET_ADDR, reg);
 }
 
 int8_t DS3231_get_aging(void)
@@ -201,12 +186,7 @@ int8_t DS3231_get_aging(void)
     uint8_t reg;
     int8_t rv;
 
-    Wire.beginTransmission((uint8_t) DS3231_I2C_ADDR);
-    Wire.write((uint8_t) DS3231_AGING_OFFSET_ADDR);
-    Wire.endTransmission();
-
-    Wire.requestFrom((uint8_t) DS3231_I2C_ADDR, (uint8_t) 1);
-    reg = Wire.read();
+    reg = DS3231_get_addr(DS3231_AGING_OFFSET_ADDR);
 
     if ((reg & 0x80) != 0)
         rv = reg | ~((1 << 8) - 1);     // if negative get two's complement
@@ -224,11 +204,11 @@ float DS3231_get_treg()
     uint8_t temp_msb, temp_lsb;
     int8_t nint;
 
-    Wire.beginTransmission((uint8_t) DS3231_I2C_ADDR);
-    Wire.write((uint8_t) DS3231_TEMPERATURE_ADDR);
+    Wire.beginTransmission(DS3231_I2C_ADDR);
+    Wire.write(DS3231_TEMPERATURE_ADDR);
     Wire.endTransmission();
 
-    Wire.requestFrom((uint8_t) DS3231_I2C_ADDR, (uint8_t) 2);
+    Wire.requestFrom(DS3231_I2C_ADDR, 2);
     temp_msb = Wire.read();
     temp_lsb = Wire.read() >> 6;
 
@@ -251,8 +231,8 @@ void DS3231_set_a1(const uint8_t s, const uint8_t mi, const uint8_t h, const uin
     uint8_t t[4] = { s, mi, h, d };
     uint8_t i;
 
-    Wire.beginTransmission((uint8_t) DS3231_I2C_ADDR);
-    Wire.write((uint8_t) DS3231_ALARM1_ADDR);
+    Wire.beginTransmission(DS3231_I2C_ADDR);
+    Wire.write(DS3231_ALARM1_ADDR);
 
     for (i = 0; i <= 3; i++) {
         if (i == 3) {
@@ -271,11 +251,11 @@ void DS3231_get_a1(char *buf, const uint8_t len)
     uint8_t f[5];               // flags
     uint8_t i;
 
-    Wire.beginTransmission((uint8_t) DS3231_I2C_ADDR);
-    Wire.write((uint8_t) DS3231_ALARM1_ADDR);
+    Wire.beginTransmission(DS3231_I2C_ADDR);
+    Wire.write(DS3231_ALARM1_ADDR);
     Wire.endTransmission();
 
-    Wire.requestFrom((uint8_t) DS3231_I2C_ADDR, (uint8_t) 4);
+    Wire.requestFrom(DS3231_I2C_ADDR, 4);
 
     for (i = 0; i <= 3; i++) {
         n[i] = Wire.read();
@@ -313,8 +293,8 @@ void DS3231_set_a2(const uint8_t mi, const uint8_t h, const uint8_t d, const uin
     uint8_t t[3] = { mi, h, d };
     uint8_t i;
 
-    Wire.beginTransmission((uint8_t) DS3231_I2C_ADDR);
-    Wire.write((uint8_t) DS3231_ALARM2_ADDR);
+    Wire.beginTransmission(DS3231_I2C_ADDR);
+    Wire.write(DS3231_ALARM2_ADDR);
 
     for (i = 0; i <= 2; i++) {
         if (i == 2) {
@@ -333,11 +313,11 @@ void DS3231_get_a2(char *buf, const uint8_t len)
     uint8_t f[4];               // flags
     uint8_t i;
 
-    Wire.beginTransmission((uint8_t) DS3231_I2C_ADDR);
-    Wire.write((uint8_t) DS3231_ALARM2_ADDR);
+    Wire.beginTransmission(DS3231_I2C_ADDR);
+    Wire.write(DS3231_ALARM2_ADDR);
     Wire.endTransmission();
 
-    Wire.requestFrom((uint8_t) DS3231_I2C_ADDR, (uint8_t) 3);
+    Wire.requestFrom(DS3231_I2C_ADDR, 3);
 
     for (i = 0; i <= 2; i++) {
         n[i] = Wire.read();
