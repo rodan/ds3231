@@ -10,7 +10,7 @@
 
 #define BUFF_MAX 256
 
-uint8_t sleep_period = 2;       // the sleep interval in minutes between 2 consecutive alarms
+uint8_t sleep_period = 5;       // the sleep interval in minutes between 2 consecutive alarms
 
 // how often to refresh the info on stdout (ms)
 unsigned long prev = 5000, interval = 5000;
