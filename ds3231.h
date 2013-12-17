@@ -29,6 +29,8 @@
 #define DS3231_A2F      0x2
 #define DS3231_OSF      0x80
 
+#define SECONDS_FROM_1970_TO_2000 946684800
+
 struct ts {
     uint8_t sec;         /* seconds */
     uint8_t min;         /* minutes */
@@ -40,6 +42,7 @@ struct ts {
     uint8_t yday;        /* day in the year */
     uint8_t isdst;       /* daylight saving time */
     uint8_t year_s;      /* year in short notation*/
+    unsigned long unixtime;       /* unix time stamp */
 };
 
 void DS3231_init(const uint8_t creg);
