@@ -39,6 +39,7 @@ void set_alarm(void)
 void setup()
 {
     Serial.begin(9600);
+    Wire.begin();
     DS3231_init(DS3231_INTCN);
     DS3231_clear_a1f();
     set_alarm();
