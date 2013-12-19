@@ -29,8 +29,15 @@ void loop()
     // show time once in a while
     if ((now - prev > interval) && (Serial.available() <= 0)) {
         DS3231_get(&t);
+
+        // there is a compile time option in the library to include unixtime support
+#ifdef CONFIG_UNIXTIME
+        snprintf(buff, BUFF_MAX, "%d.%02d.%02d %02d:%02d:%02d %ld", t.year,
+             t.mon, t.mday, t.hour, t.min, t.sec, t.unixtime);
+#else
         snprintf(buff, BUFF_MAX, "%d.%02d.%02d %02d:%02d:%02d", t.year,
              t.mon, t.mday, t.hour, t.min, t.sec);
+#endif
 
         Serial.println(buff);
         prev = now;

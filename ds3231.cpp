@@ -36,6 +36,18 @@
 #include <stdio.h>
 #include "ds3231.h"
 
+#ifdef __AVR__
+ #include <avr/pgmspace.h>
+ // Workaround for http://gcc.gnu.org/bugzilla/show_bug.cgi?id=34734
+ #ifdef PROGMEM
+  #undef PROGMEM
+  #define PROGMEM __attribute__((section(".progmem.data")))
+ #endif
+#else
+ #define PROGMEM
+ #define pgm_read_byte(addr) (*(const uint8_t *)(addr))
+#endif
+
 /* control register 0Eh/8Eh
 bit7 EOSC   Enable Oscillator (1 if oscillator must be stopped when on battery)
 bit6 BBSQW  Battery Backed Square Wave
@@ -99,10 +111,11 @@ void DS3231_get(struct ts *t)
             TimeDate[i] = bcdtodec(n);
     }
 
-    if (century == 1)
+    if (century == 1) {
         year_full = 2000 + TimeDate[6];
-    else
+    } else {
         year_full = 1900 + TimeDate[6];
+    }
 
     t->sec = TimeDate[0];
     t->min = TimeDate[1];
@@ -112,6 +125,9 @@ void DS3231_get(struct ts *t)
     t->year = year_full;
     t->wday = TimeDate[3];
     t->year_s = TimeDate[6];
+#ifdef CONFIG_UNIXTIME
+    t->unixtime = get_unixtime(*t);
+#endif
 }
 
 void DS3231_set_addr(const uint8_t addr, const uint8_t val)
@@ -348,6 +364,37 @@ uint8_t DS3231_triggered_a2(void)
 }
 
 // helpers
+
+#ifdef CONFIG_UNIXTIME
+const uint8_t days_in_month [12] PROGMEM = { 31,28,31,30,31,30,31,31,30,31,30,31 };
+
+// returns the number of seconds since 01.01.1970 00:00:00 UTC, valid for 2000..FIXME
+uint32_t get_unixtime(struct ts t)
+{
+    uint8_t i;
+    uint16_t d;
+    int16_t y;
+    uint32_t rv;
+
+    if (t.year >= 2000) {
+        y = t.year - 2000;
+    } else {
+        return 0;
+    }
+
+    d = t.mday - 1;
+    for (i=1; i<t.mon; i++) {
+        d += pgm_read_byte(days_in_month + i - 1);
+    }
+    if (t.mon > 2 && y % 4 == 0) {
+        d++;
+    }
+    // count leap days
+    d += (365 * y + (y + 3) / 4);
+    rv = ((d * 24UL + t.hour) * 60 + t.min) * 60 + t.sec + SECONDS_FROM_1970_TO_2000;
+    return rv;
+}
+#endif
 
 uint8_t dectobcd(const uint8_t val)
 {
