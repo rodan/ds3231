@@ -1,4 +1,3 @@
-
 /*
   DS3231 library for the Arduino.
 
@@ -31,8 +30,17 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
    
 */
-
 #include <Wire.h>
+
+#ifdef __AVR__
+ #include <avr/pgmspace.h>
+ #define WIRE Wire
+#else
+ #define PROGMEM
+ #define pgm_read_byte(addr) (*(const unsigned char *)(addr))
+ #define WIRE Wire1
+#endif
+
 #include <stdio.h>
 #include "ds3231.h"
 
@@ -46,6 +54,8 @@ bit2 INTCN  Interrupt control (1 for use of the alarms and to disable square wav
 bit1 A2IE   Alarm2 interrupt enable (1 to enable)
 bit0 A1IE   Alarm1 interrupt enable (1 to enable)
 */
+
+const uint8_t daysInMonth [] PROGMEM = { 31,28,31,30,31,30,31,31,30,31,30,31 };
 
 void DS3231_init(const uint8_t ctrl_reg)
 {
@@ -77,12 +87,29 @@ void DS3231_set(struct ts t)
     Wire.endTransmission();
 }
 
+// number of days since 2000/01/01, valid for 2001..2099
+uint16_t date2days(uint16_t y, uint8_t m, uint8_t d) {
+    if (y >= 2000)
+        y -= 2000;
+    uint16_t days = d;
+    for (uint8_t i = 1; i < m; ++i)
+        days += pgm_read_byte(daysInMonth + i - 1);
+    if (m > 2 && y % 4 == 0)
+        ++days;
+    return days + 365 * y + (y + 3) / 4 - 1;
+}
+
+long time2long(uint16_t days, uint8_t h, uint8_t m, uint8_t s) {
+    return ((days * 24L + h) * 60 + m) * 60 + s;
+}
+
 void DS3231_get(struct ts *t)
 {
     uint8_t TimeDate[7];        //second,minute,hour,dow,day,month,year
     uint8_t century = 0;
     uint8_t i, n;
     uint16_t year_full;
+    unsigned long stamp;
 
     Wire.beginTransmission(DS3231_I2C_ADDR);
     Wire.write(DS3231_TIME_CAL_ADDR);
@@ -99,10 +126,15 @@ void DS3231_get(struct ts *t)
             TimeDate[i] = bcdtodec(n);
     }
 
-    if (century == 1)
+    if (century == 1) {
         year_full = 2000 + TimeDate[6];
-    else
+    } else {
         year_full = 1900 + TimeDate[6];
+    }
+
+    uint16_t days = date2days(year_full, TimeDate[5], TimeDate[4]);
+    stamp = time2long(days, TimeDate[2], TimeDate[1], TimeDate[0]);
+    stamp += SECONDS_FROM_1970_TO_2000;  // seconds from 1970 to 2000
 
     t->sec = TimeDate[0];
     t->min = TimeDate[1];
@@ -112,6 +144,7 @@ void DS3231_get(struct ts *t)
     t->year = year_full;
     t->wday = TimeDate[3];
     t->year_s = TimeDate[6];
+    t->unixtime = stamp;
 }
 
 void DS3231_set_addr(const uint8_t addr, const uint8_t val)
