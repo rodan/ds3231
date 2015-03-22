@@ -27,7 +27,7 @@ void set_alarm(void)
     // A1M3 (hour)    (0 to enable, 1 to disable) 
     // A1M4 (day)     (0 to enable, 1 to disable)
     // DY/DT          (dayofweek == 1/dayofmonth == 0)
-    boolean flags[5] = { 0, 0, 0, 1, 1 };
+    uint8_t flags[5] = { 0, 0, 0, 1, 1 };
 
     // set Alarm1
     DS3231_set_a1(wake_SECOND, wake_MINUTE, wake_HOUR, 0, flags);

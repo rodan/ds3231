@@ -34,7 +34,7 @@ void set_next_alarm(void)
     // A2M3 (hour)    (0 to enable, 1 to disable) 
     // A2M4 (day)     (0 to enable, 1 to disable)
     // DY/DT          (dayofweek == 1/dayofmonth == 0)
-    boolean flags[4] = { 0, 1, 1, 1 };
+    uint8_t flags[4] = { 0, 1, 1, 1 };
 
     // set Alarm2. only the minute is set since we ignore the hour and day component
     DS3231_set_a2(wakeup_min, 0, 0, flags);
