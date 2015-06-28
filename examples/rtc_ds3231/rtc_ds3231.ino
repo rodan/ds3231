@@ -80,7 +80,7 @@ void parse_cmd(char *cmd, int cmdsize)
         t.sec = inp2toi(cmd, 1);
         t.min = inp2toi(cmd, 3);
         t.hour = inp2toi(cmd, 5);
-        t.wday = inp2toi(cmd, 7);
+        t.wday = cmd[7] - 48;
         t.mday = inp2toi(cmd, 8);
         t.mon = inp2toi(cmd, 10);
         t.year = inp2toi(cmd, 12) * 100 + inp2toi(cmd, 14);
