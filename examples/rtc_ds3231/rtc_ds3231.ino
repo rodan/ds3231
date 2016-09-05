@@ -1,7 +1,6 @@
 
 #include <Wire.h>
 #include "ds3231.h"
-#include "rtc_ds3231.h"
 
 #define BUFF_MAX 128
 
@@ -9,6 +8,8 @@ uint8_t time[8];
 char recv[BUFF_MAX];
 unsigned int recv_size = 0;
 unsigned long prev, interval = 5000;
+
+void parse_cmd(char *cmd, int cmdsize);
 
 void setup()
 {

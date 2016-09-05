@@ -1,11 +1,11 @@
 #ifndef __ds3231_h_
 #define __ds3231_h_
 
-#if ARDUINO >= 100
+//#if ARDUINO >= 100
 #include <Arduino.h>
-#else
-#include <WProgram.h>
-#endif
+//#else
+//#include <WProgram.h>
+//#endif
 
 #include "config.h"
 
