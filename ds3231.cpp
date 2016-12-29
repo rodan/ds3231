@@ -68,7 +68,7 @@ void DS3231_set(struct ts t)
 {
     uint8_t i, century;
 
-    if (t.year > 2000) {
+    if (t.year >= 2000) {
         century = 0x80;
         t.year_s = t.year - 2000;
     } else {
