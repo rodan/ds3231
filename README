@@ -11,7 +11,8 @@
   Available from:  https://github.com/rodan/ds3231
   License:         GNU GPLv3
 
-  The DS3231 is a low-cost, extremely accurate I2C real-time clock 
-  (RTC) with an integrated temperature-compensated crystal oscillator 
+  The DS3231 is a low-cost, extremely accurate I2C real-time clock
+  (RTC) with an integrated temperature-compensated crystal oscillator
   (TCXO) and crystal.
 
+  You can activate unix timestamp in config.h

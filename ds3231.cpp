@@ -386,7 +386,7 @@ uint32_t get_unixtime(struct ts t)
     for (i=1; i<t.mon; i++) {
         d += pgm_read_byte(days_in_month + i - 1);
     }
-    if (t.mon > 2 && y % 4 == 0) {
+    if (t.mon > 2 && (y % 4 == 0 && y % 100 != 0) || y % 400 == 0) {
         d++;
     }
     // count leap days
