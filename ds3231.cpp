@@ -372,19 +372,8 @@ const uint8_t days_in_month_growing [12] PROGMEM = { 31,59,90,120,151,181,212,24
 uint32_t get_unixtime(struct ts t)
 {
     uint16_t y;
-  #ifndef CONFIG_UNIXTIME_FULL
-    uint16_t d;
-
-    d = pgm_read_byte(days_in_month_growing + t.mon - 1) + t.mday;
-    // if is leap day
-    d += (t.mon == 2 && (y % 4 == 0 && y % 100 != 0) || y % 400 == 0); // conversion bool to int is implict
-    // count leap days
-    d += (365 * y + (y + 3) / 4);
-    return ((d * 24UL + t.hour) * 60 + t.min) * 60 + t.sec + SECONDS_FROM_1970_TO_2000;
-  #else
     y = t.year - 1600; // cause this is the first year < at 1970 where year % 400 = 0
     return (t.year - 1970) * 31536000 + (pgm_read_byte(days_in_month_growing + t.mon - 1) + t.mday - 1 + (y / 4) - (y / 100) + (y / 400) - 89) * 86400 + t.hour * 3600 + t.min * 60 + t.sec;
-  #endif
 }
 #endif
 
