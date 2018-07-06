@@ -366,33 +366,25 @@ uint8_t DS3231_triggered_a2(void)
 // helpers
 
 #ifdef CONFIG_UNIXTIME
-const uint8_t days_in_month [12] PROGMEM = { 31,28,31,30,31,30,31,31,30,31,30,31 };
+//const uint8_t days_in_month [12] PROGMEM = { 31,28,31,30,31,30,31,31,30,31,30,31 };
+const uint8_t days_in_month_growing [12] PROGMEM = { 31,59,90,120,151,181,212,243,273,304,334,365 };
 
-// returns the number of seconds since 01.01.1970 00:00:00 UTC, valid for 2000..FIXME
 uint32_t get_unixtime(struct ts t)
 {
-    uint8_t i;
+    uint16_t y;
+  #ifndef CONFIG_UNIXTIME_FULL
     uint16_t d;
-    int16_t y;
-    uint32_t rv;
 
-    if (t.year > 1999) {
-        y = t.year - 2000;
-    } else {
-        return 0;
-    }
-
-    d = t.mday - 1;
-    for (i=1; i<t.mon; i++) {
-        d += pgm_read_byte(days_in_month + i - 1);
-    }
-    if (t.mon > 2 && (y % 4 == 0 && y % 100 != 0) || y % 400 == 0) {
-        d++;
-    }
+    d = pgm_read_byte(days_in_month_growing + t.mon - 1) + t.mday;
+    // if is leap day
+    d += (t.mon == 2 && (y % 4 == 0 && y % 100 != 0) || y % 400 == 0); // conversion bool to int is implict
     // count leap days
     d += (365 * y + (y + 3) / 4);
-    rv = ((d * 24UL + t.hour) * 60 + t.min) * 60 + t.sec + SECONDS_FROM_1970_TO_2000;
-    return rv;
+    return ((d * 24UL + t.hour) * 60 + t.min) * 60 + t.sec + SECONDS_FROM_1970_TO_2000;
+  #else
+    y = t.year - 1600; // cause this is the first year < at 1970 where year % 400 = 0
+    return (t.year - 1970) * 31536000 + (pgm_read_byte(days_in_month_growing + t.mon - 1) + t.mday - 1 + (y / 4) - (y / 100) + (y / 400) - 89) * 86400 + t.hour * 3600 + t.min * 60 + t.sec;
+  #endif
 }
 #endif
 
