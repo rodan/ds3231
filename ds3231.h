@@ -33,7 +33,8 @@
 #define DS3231_A2F      0x2
 #define DS3231_OSF      0x80
 
-
+  #ifndef DS3231_NEWLIB
+//If not defined, use the old library
 struct ts {
     uint8_t sec;         /* seconds */
     uint8_t min;         /* minutes */
@@ -87,4 +88,51 @@ uint8_t dectobcd(const uint8_t val);
 uint8_t bcdtodec(const uint8_t val);
 uint8_t inp2toi(char *cmd, const uint16_t seek);
 
+  #else
+//Use the new one
+class DS3231{
+public:
+  DS3231();
+  ~DS3231();
+  void init(const uint8_t creg);
+  void set(struct ts t);
+  void get(struct ts *t);
+
+  void set_addr(const uint8_t addr, const uint8_t val);
+  uint8_t get_addr(const uint8_t addr);
+
+  // control/status register
+  void set_creg(const uint8_t val);
+  void set_sreg(const uint8_t val);
+  uint8_t get_sreg(void);
+
+  // aging offset register
+  void set_aging(const int8_t val);
+  int8_t get_aging(void);
+
+  // temperature register
+  float get_treg(void);
+
+  // alarms
+  void set_a1(const uint8_t s, const uint8_t mi, const uint8_t h, const uint8_t d,
+                     const uint8_t * flags);
+  void get_a1(char *buf, const uint8_t len);
+  void clear_a1f(void);
+  uint8_t triggered_a1(void);
+
+  void set_a2(const uint8_t mi, const uint8_t h, const uint8_t d, const uint8_t * flags);
+  void get_a2(char *buf, const uint8_t len);
+  void clear_a2f(void);
+  uint8_t triggered_a2(void);
+
+  // helpers
+private:
+  uint32_t get_unixtime(struct ts t);
+  uint8_t dectobcd(const uint8_t val);
+  uint8_t bcdtodec(const uint8_t val);
+  uint8_t inp2toi(char *cmd, const uint16_t seek);
+
+};
+
+  #endif //DS3231_NEWLIB
 #endif

@@ -4,32 +4,32 @@
 
   This library implements the following features:
 
-   - read/write of current time, both of the alarms, 
+   - read/write of current time, both of the alarms,
    control/status registers, aging register
    - read of the temperature register, and of any address from the chip.
 
   Author:          Petre Rodan <petre.rodan@simplex.ro>
   Available from:  https://github.com/rodan/ds3231
- 
-  The DS3231 is a low-cost, extremely accurate I2C real-time clock 
-  (RTC) with an integrated temperature-compensated crystal oscillator 
+
+  The DS3231 is a low-cost, extremely accurate I2C real-time clock
+  (RTC) with an integrated temperature-compensated crystal oscillator
   (TCXO) and crystal.
 
   GNU GPLv3 license:
-  
+
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
   the Free Software Foundation, either version 3 of the License, or
   (at your option) any later version.
-   
+
   This program is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   GNU General Public License for more details.
-   
+
   You should have received a copy of the GNU General Public License
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
-   
+
 */
 
 #include <Wire.h>
@@ -45,7 +45,7 @@
  #endif
 #else
  #define PROGMEM
- #define pgm_read_byte(addr) (*(const uint8_t *)(addr))
+ //#define pgm_read_byte(addr) (*(const uint8_t *)(addr))
 #endif
 
 /* control register 0Eh/8Eh
@@ -68,7 +68,7 @@ void DS3231_set(struct ts t)
 {
     uint8_t i, century;
 
-    if (t.year >= 2000) {
+    if (t.year > 1999) {
         century = 0x80;
         t.year_s = t.year - 2000;
     } else {
@@ -80,7 +80,7 @@ void DS3231_set(struct ts t)
 
     Wire.beginTransmission(DS3231_I2C_ADDR);
     Wire.write(DS3231_TIME_CAL_ADDR);
-    for (i = 0; i <= 6; i++) {
+    for (i = 0; i < 7; i++) {
         TimeDate[i] = dectobcd(TimeDate[i]);
         if (i == 5)
             TimeDate[5] += century;
@@ -102,7 +102,7 @@ void DS3231_get(struct ts *t)
 
     Wire.requestFrom(DS3231_I2C_ADDR, 7);
 
-    for (i = 0; i <= 6; i++) {
+    for (i = 0; i < 7; i++) {
         n = Wire.read();
         if (i == 5) {
             TimeDate[5] = bcdtodec(n & 0x1F);
@@ -240,7 +240,7 @@ float DS3231_get_treg()
 
 // alarms
 
-// flags are: A1M1 (seconds), A1M2 (minutes), A1M3 (hour), 
+// flags are: A1M1 (seconds), A1M2 (minutes), A1M3 (hour),
 // A1M4 (day) 0 to enable, 1 to disable, DY/DT (dayofweek == 1/dayofmonth == 0)
 void DS3231_set_a1(const uint8_t s, const uint8_t mi, const uint8_t h, const uint8_t d, const uint8_t * flags)
 {
@@ -250,7 +250,7 @@ void DS3231_set_a1(const uint8_t s, const uint8_t mi, const uint8_t h, const uin
     Wire.beginTransmission(DS3231_I2C_ADDR);
     Wire.write(DS3231_ALARM1_ADDR);
 
-    for (i = 0; i <= 3; i++) {
+    for (i = 0; i < 4; i++) {
         if (i == 3) {
             Wire.write(dectobcd(t[3]) | (flags[3] << 7) | (flags[4] << 6));
         } else
@@ -273,7 +273,7 @@ void DS3231_get_a1(char *buf, const uint8_t len)
 
     Wire.requestFrom(DS3231_I2C_ADDR, 4);
 
-    for (i = 0; i <= 3; i++) {
+    for (i = 0; i < 4; i++) {
         n[i] = Wire.read();
         f[i] = (n[i] & 0x80) >> 7;
         t[i] = bcdtodec(n[i] & 0x7F);
@@ -303,7 +303,7 @@ uint8_t DS3231_triggered_a1(void)
     return  DS3231_get_sreg() & DS3231_A1F;
 }
 
-// flags are: A2M2 (minutes), A2M3 (hour), A2M4 (day) 0 to enable, 1 to disable, DY/DT (dayofweek == 1/dayofmonth == 0) - 
+// flags are: A2M2 (minutes), A2M3 (hour), A2M4 (day) 0 to enable, 1 to disable, DY/DT (dayofweek == 1/dayofmonth == 0) -
 void DS3231_set_a2(const uint8_t mi, const uint8_t h, const uint8_t d, const uint8_t * flags)
 {
     uint8_t t[3] = { mi, h, d };
@@ -312,7 +312,7 @@ void DS3231_set_a2(const uint8_t mi, const uint8_t h, const uint8_t d, const uin
     Wire.beginTransmission(DS3231_I2C_ADDR);
     Wire.write(DS3231_ALARM2_ADDR);
 
-    for (i = 0; i <= 2; i++) {
+    for (i = 0; i < 3; i++) {
         if (i == 2) {
             Wire.write(dectobcd(t[2]) | (flags[2] << 7) | (flags[3] << 6));
         } else
@@ -335,7 +335,7 @@ void DS3231_get_a2(char *buf, const uint8_t len)
 
     Wire.requestFrom(DS3231_I2C_ADDR, 3);
 
-    for (i = 0; i <= 2; i++) {
+    for (i = 0; i < 3; i++) {
         n[i] = Wire.read();
         f[i] = (n[i] & 0x80) >> 7;
         t[i] = bcdtodec(n[i] & 0x7F);
@@ -366,33 +366,12 @@ uint8_t DS3231_triggered_a2(void)
 // helpers
 
 #ifdef CONFIG_UNIXTIME
-const uint8_t days_in_month [12] PROGMEM = { 31,28,31,30,31,30,31,31,30,31,30,31 };
 
-// returns the number of seconds since 01.01.1970 00:00:00 UTC, valid for 2000..FIXME
 uint32_t get_unixtime(struct ts t)
 {
-    uint8_t i;
-    uint16_t d;
-    int16_t y;
-    uint32_t rv;
-
-    if (t.year >= 2000) {
-        y = t.year - 2000;
-    } else {
-        return 0;
-    }
-
-    d = t.mday - 1;
-    for (i=1; i<t.mon; i++) {
-        d += pgm_read_byte(days_in_month + i - 1);
-    }
-    if (t.mon > 2 && y % 4 == 0) {
-        d++;
-    }
-    // count leap days
-    d += (365 * y + (y + 3) / 4);
-    rv = ((d * 24UL + t.hour) * 60 + t.min) * 60 + t.sec + SECONDS_FROM_1970_TO_2000;
-    return rv;
+    uint16_t y;
+    y = t.year - 1600; // cause this is the first year < at 1970 where year % 400 = 0
+    return (t.year - 1970) * 31536000 + (t.yday - 1 + (y / 4) - (y / 100) + (y / 400) - 89) * 86400 + t.hour * 3600 + t.min * 60 + t.sec;
 }
 #endif
 
@@ -412,4 +391,3 @@ uint8_t inp2toi(char *cmd, const uint16_t seek)
     rv = (cmd[seek] - 48) * 10 + cmd[seek + 1] - 48;
     return rv;
 }
-
