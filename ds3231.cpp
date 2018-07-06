@@ -45,7 +45,7 @@
  #endif
 #else
  #define PROGMEM
- #define pgm_read_byte(addr) (*(const uint8_t *)(addr))
+ //#define pgm_read_byte(addr) (*(const uint8_t *)(addr))
 #endif
 
 /* control register 0Eh/8Eh
@@ -366,14 +366,12 @@ uint8_t DS3231_triggered_a2(void)
 // helpers
 
 #ifdef CONFIG_UNIXTIME
-//const uint8_t days_in_month [12] PROGMEM = { 31,28,31,30,31,30,31,31,30,31,30,31 };
-const uint8_t days_in_month_growing [12] PROGMEM = { 31,59,90,120,151,181,212,243,273,304,334,365 };
 
 uint32_t get_unixtime(struct ts t)
 {
     uint16_t y;
     y = t.year - 1600; // cause this is the first year < at 1970 where year % 400 = 0
-    return (t.year - 1970) * 31536000 + (pgm_read_byte(days_in_month_growing + t.mon - 1) + t.mday - 1 + (y / 4) - (y / 100) + (y / 400) - 89) * 86400 + t.hour * 3600 + t.min * 60 + t.sec;
+    return (t.year - 1970) * 31536000 + (t.yday - 1 + (y / 4) - (y / 100) + (y / 400) - 89) * 86400 + t.hour * 3600 + t.min * 60 + t.sec;
 }
 #endif
 
