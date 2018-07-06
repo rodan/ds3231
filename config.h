@@ -3,6 +3,6 @@
 
   // comment this out if you need unixtime support
   // this will add about 756 bytes to your firmware
-  #define CONFIG_UNIXTIME
+  //#define CONFIG_UNIXTIME
 
 #endif
