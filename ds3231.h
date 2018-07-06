@@ -7,7 +7,7 @@
 //#include <WProgram.h>
 //#endif
 
-//#include "config.h"
+#include "config.h"
 
 #define SECONDS_FROM_1970_TO_2000 946684800
 
