@@ -40,14 +40,14 @@ void set_next_alarm(void)
     DS3231_set_a2(wakeup_min, 0, 0, flags);
 
     // activate Alarm2
-    DS3231_set_creg(DS3231_INTCN | DS3231_A2IE);
+    DS3231_set_creg(DS3231_CONTROL_INTCN | DS3231_CONTROL_A2IE);
 }
 
 void setup()
 {
     Serial.begin(9600);
     Wire.begin();
-    DS3231_init(DS3231_INTCN);
+    DS3231_init(DS3231_CONTROL_INTCN);
     DS3231_clear_a2f();
     set_next_alarm();
 }
