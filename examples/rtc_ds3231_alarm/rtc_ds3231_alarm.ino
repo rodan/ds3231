@@ -33,14 +33,14 @@ void set_alarm(void)
     DS3231_set_a1(wake_SECOND, wake_MINUTE, wake_HOUR, 0, flags);
 
     // activate Alarm1
-    DS3231_set_creg(DS3231_INTCN | DS3231_A1IE);
+    DS3231_set_creg(DS3231_CONTROL_INTCN | DS3231_CONTROL_A1IE);
 }
 
 void setup()
 {
     Serial.begin(9600);
     Wire.begin();
-    DS3231_init(DS3231_INTCN);
+    DS3231_init(DS3231_CONTROL_INTCN);
     DS3231_clear_a1f();
     set_alarm();
 }
