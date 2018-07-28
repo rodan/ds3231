@@ -24,14 +24,22 @@
 #define DS3231_TEMPERATURE_ADDR     0x11
 
 // control register bits
-#define DS3231_A1IE     0x1
-#define DS3231_A2IE     0x2
-#define DS3231_INTCN    0x4
+#define DS3231_CONTROL_A1IE     0x1		/* Alarm 2 Interrupt Enable */
+#define DS3231_CONTROL_A2IE     0x2		/* Alarm 2 Interrupt Enable */
+#define DS3231_CONTROL_INTCN    0x4		/* Interrupt Control */
+#define DS3231_CONTROL_RS1	    0x8		/* square-wave rate select 2 */
+#define DS3231_CONTROL_RS2    	0x10	/* square-wave rate select 2 */
+#define DS3231_CONTROL_CONV    	0x20	/* Convert Temperature */
+#define DS3231_CONTROL_BBSQW    0x40	/* Battery-Backed Square-Wave Enable */
+#define DS3231_CONTROL_EOSC	    0x80	/* not Enable Oscillator, 0 equal on */
+
 
 // status register bits
-#define DS3231_A1F      0x1
-#define DS3231_A2F      0x2
-#define DS3231_OSF      0x80
+#define DS3231_STATUS_A1F      0x01		/* Alarm 1 Flag */
+#define DS3231_STATUS_A2F      0x02		/* Alarm 2 Flag */
+#define DS3231_STATUS_BUSY     0x04		/* device is busy executing TCXO */
+#define DS3231_STATUS_EN32KHZ  0x08		/* Enable 32KHz Output  */
+#define DS3231_STATUS_OSF      0x80		/* Oscillator Stop Flag */
 
 
 struct ts {
@@ -59,6 +67,8 @@ uint8_t DS3231_get_addr(const uint8_t addr);
 
 // control/status register
 void DS3231_set_creg(const uint8_t val);
+uint8_t DS3231_get_creg(void);
+
 void DS3231_set_sreg(const uint8_t val);
 uint8_t DS3231_get_sreg(void);
 
@@ -68,6 +78,8 @@ int8_t DS3231_get_aging(void);
 
 // temperature register
 float DS3231_get_treg(void);
+
+void DS3231_set_32kHz_output(const uint8_t on);
 
 // alarms
 void DS3231_set_a1(const uint8_t s, const uint8_t mi, const uint8_t h, const uint8_t d,

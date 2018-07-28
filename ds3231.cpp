@@ -45,7 +45,7 @@
  #endif
 #else
  #define PROGMEM
- #define pgm_read_byte(addr) (*(const uint8_t *)(addr))
+ #define xpgm_read_byte(addr) (*(const uint8_t *)(addr))
 #endif
 
 /* control register 0Eh/8Eh
@@ -62,6 +62,7 @@ bit0 A1IE   Alarm1 interrupt enable (1 to enable)
 void DS3231_init(const uint8_t ctrl_reg)
 {
     DS3231_set_creg(ctrl_reg);
+    DS3231_set_32kHz_output(false);
 }
 
 void DS3231_set(struct ts t)
@@ -161,6 +162,15 @@ void DS3231_set_creg(const uint8_t val)
     DS3231_set_addr(DS3231_CONTROL_ADDR, val);
 }
 
+uint8_t DS3231_get_creg(void)
+{
+    uint8_t rv;
+    rv = DS3231_get_addr(DS3231_CONTROL_ADDR);
+    return rv;
+  
+}
+
+
 // status register 0Fh/8Fh
 
 /*
@@ -194,7 +204,16 @@ void DS3231_set_aging(const int8_t val)
     else
         reg = ~(-val) + 1;      // 2C
 
+    /*
+     * At 25°C the aging change of:
+     * +1 means -0.1ppm
+     * -1 means -0.1ppm
+     */
     DS3231_set_addr(DS3231_AGING_OFFSET_ADDR, reg);
+    /*
+     * A conversion mut be done to forace the new aging value.
+	 */
+    DS3231_set_creg(DS3231_get_creg()| DS3231_CONTROL_CONV);
 }
 
 int8_t DS3231_get_aging(void)
@@ -236,6 +255,24 @@ float DS3231_get_treg()
     rv = 0.25 * temp_lsb + nint;
 
     return rv;
+}
+
+void DS3231_set_32kHz_output(const uint8_t on)
+{
+    /*
+     * Note, the pin1 is an open drain pin, therfore a pullup
+     * resitor is required to use the output.
+     */
+    if (on) {
+        uint8_t sreg = DS3231_get_sreg();
+        sreg &= ~DS3231_STATUS_OSF;
+        sreg |= DS3231_STATUS_EN32KHZ;
+        DS3231_set_sreg(sreg);
+    } else {
+        uint8_t sreg = DS3231_get_sreg();
+        sreg &= ~DS3231_STATUS_EN32KHZ;
+        DS3231_set_sreg(sreg);
+    }
 }
 
 // alarms
@@ -294,13 +331,13 @@ void DS3231_clear_a1f(void)
 {
     uint8_t reg_val;
 
-    reg_val = DS3231_get_sreg() & ~DS3231_A1F;
+    reg_val = DS3231_get_sreg() & ~DS3231_STATUS_A1F;
     DS3231_set_sreg(reg_val);
 }
 
 uint8_t DS3231_triggered_a1(void)
 {
-    return  DS3231_get_sreg() & DS3231_A1F;
+    return  DS3231_get_sreg() & DS3231_STATUS_A1F;
 }
 
 // flags are: A2M2 (minutes), A2M3 (hour), A2M4 (day) 0 to enable, 1 to disable, DY/DT (dayofweek == 1/dayofmonth == 0) - 
@@ -354,13 +391,13 @@ void DS3231_clear_a2f(void)
 {
     uint8_t reg_val;
 
-    reg_val = DS3231_get_sreg() & ~DS3231_A2F;
+    reg_val = DS3231_get_sreg() & ~DS3231_STATUS_A2F;
     DS3231_set_sreg(reg_val);
 }
 
 uint8_t DS3231_triggered_a2(void)
 {
-    return  DS3231_get_sreg() & DS3231_A2F;
+    return  DS3231_get_sreg() & DS3231_STATUS_A2F;
 }
 
 // helpers
@@ -384,7 +421,7 @@ uint32_t get_unixtime(struct ts t)
 
     d = t.mday - 1;
     for (i=1; i<t.mon; i++) {
-        d += pgm_read_byte(days_in_month + i - 1);
+        d += xpgm_read_byte(days_in_month + i - 1);
     }
     if (t.mon > 2 && y % 4 == 0) {
         d++;
