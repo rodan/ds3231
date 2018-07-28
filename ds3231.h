@@ -79,7 +79,7 @@ int8_t DS3231_get_aging(void);
 // temperature register
 float DS3231_get_treg(void);
 
-void DS3231_set_32kHz_output(bool on);
+void DS3231_set_32kHz_output(const uint8_t on);
 
 // alarms
 void DS3231_set_a1(const uint8_t s, const uint8_t mi, const uint8_t h, const uint8_t d,

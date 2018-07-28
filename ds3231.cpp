@@ -257,7 +257,7 @@ float DS3231_get_treg()
     return rv;
 }
 
-void DS3231_set_32kHz_output(bool on)
+void DS3231_set_32kHz_output(const uint8_t on)
 {
     /*
      * Note, the pin1 is an open drain pin, therfore a pullup
