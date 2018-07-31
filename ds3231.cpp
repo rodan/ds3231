@@ -101,8 +101,18 @@ void DS3231_get(struct ts *t)
     Wire.write(DS3231_TIME_CAL_ADDR);
     Wire.endTransmission();
 
-    Wire.requestFrom(DS3231_I2C_ADDR, 7);
-
+	bool gotData = false;
+	uint32_t start = millis(); // start timeout
+	while(millis()-start < DS3231_TRANSACTION_TIMEOUT){
+	  if (Wire.requestFrom(DS3231_I2C_ADDR, 7) == 7) {
+      	gotData = true;
+      	break;
+      }
+      delay(2);
+    }
+	if (!gotData)
+    	return; // error timeout
+    
     for (i = 0; i <= 6; i++) {
         n = Wire.read();
         if (i == 5) {
@@ -147,7 +157,18 @@ uint8_t DS3231_get_addr(const uint8_t addr)
     Wire.write(addr);
     Wire.endTransmission();
 
-    Wire.requestFrom(DS3231_I2C_ADDR, 1);
+	bool gotData = false;
+	uint32_t start = millis(); // start timeout
+	while(millis()-start < DS3231_TRANSACTION_TIMEOUT){
+	  if (Wire.requestFrom(DS3231_I2C_ADDR, 1) == 1) {
+      	gotData = true;
+      	break;
+      }
+      delay(2);
+    }
+	if (!gotData)
+    	return 0; // error timeout
+
     rv = Wire.read();
 
     return rv;
@@ -243,7 +264,20 @@ float DS3231_get_treg()
     Wire.write(DS3231_TEMPERATURE_ADDR);
     Wire.endTransmission();
 
-    Wire.requestFrom(DS3231_I2C_ADDR, 2);
+    
+	bool gotData = false;
+	uint32_t start = millis(); // start timeout
+	while(millis()-start < DS3231_TRANSACTION_TIMEOUT){
+	  if (Wire.requestFrom(DS3231_I2C_ADDR, 2) == 2) {
+      	gotData = true;
+      	break;
+      }
+      delay(2);
+    }
+	if (!gotData)
+    	return 0; // error timeout
+
+
     temp_msb = Wire.read();
     temp_lsb = Wire.read() >> 6;
 
@@ -308,7 +342,17 @@ void DS3231_get_a1(char *buf, const uint8_t len)
     Wire.write(DS3231_ALARM1_ADDR);
     Wire.endTransmission();
 
-    Wire.requestFrom(DS3231_I2C_ADDR, 4);
+	bool gotData = false;
+	uint32_t start = millis(); // start timeout
+	while(millis()-start < DS3231_TRANSACTION_TIMEOUT){
+	  if (Wire.requestFrom(DS3231_I2C_ADDR, 4) == 4) {
+      	gotData = true;
+      	break;
+      }
+      delay(2);
+    }
+	if (!gotData)
+    	return; // error timeout
 
     for (i = 0; i <= 3; i++) {
         n[i] = Wire.read();
@@ -370,7 +414,20 @@ void DS3231_get_a2(char *buf, const uint8_t len)
     Wire.write(DS3231_ALARM2_ADDR);
     Wire.endTransmission();
 
-    Wire.requestFrom(DS3231_I2C_ADDR, 3);
+    Wire.requestFrom(DS3231_I2C_ADDR, 4);
+	bool gotData = false;
+	uint32_t start = millis(); // start timeout
+	while(millis()-start < DS3231_TRANSACTION_TIMEOUT){
+	  if (Wire.requestFrom(DS3231_I2C_ADDR, 3) == 3) {
+      	gotData = true;
+      	break;
+      }
+      delay(2);
+    }
+	if (!gotData)
+    	return; // error timeout
+
+    
 
     for (i = 0; i <= 2; i++) {
         n[i] = Wire.read();

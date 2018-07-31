@@ -9,6 +9,8 @@
 
 #include "config.h"
 
+#define	DS3231_TRANSACTION_TIMEOUT	100 // Wire NAK/Busy timeout in ms
+
 #define SECONDS_FROM_1970_TO_2000 946684800
 
 // i2c slave address of the DS3231 chip
