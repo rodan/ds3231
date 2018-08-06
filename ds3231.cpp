@@ -101,7 +101,7 @@ void DS3231_get(struct ts *t)
     Wire.write(DS3231_TIME_CAL_ADDR);
     Wire.endTransmission();
 
-	bool gotData = false;
+	uint8_t gotData = false;
 	uint32_t start = millis(); // start timeout
 	while(millis()-start < DS3231_TRANSACTION_TIMEOUT){
 	  if (Wire.requestFrom(DS3231_I2C_ADDR, 7) == 7) {
@@ -157,7 +157,7 @@ uint8_t DS3231_get_addr(const uint8_t addr)
     Wire.write(addr);
     Wire.endTransmission();
 
-	bool gotData = false;
+	uint8_t gotData = false;
 	uint32_t start = millis(); // start timeout
 	while(millis()-start < DS3231_TRANSACTION_TIMEOUT){
 	  if (Wire.requestFrom(DS3231_I2C_ADDR, 1) == 1) {
@@ -188,9 +188,7 @@ uint8_t DS3231_get_creg(void)
     uint8_t rv;
     rv = DS3231_get_addr(DS3231_CONTROL_ADDR);
     return rv;
-  
 }
-
 
 // status register 0Fh/8Fh
 
@@ -264,8 +262,7 @@ float DS3231_get_treg()
     Wire.write(DS3231_TEMPERATURE_ADDR);
     Wire.endTransmission();
 
-    
-	bool gotData = false;
+	uint8_t gotData = false;
 	uint32_t start = millis(); // start timeout
 	while(millis()-start < DS3231_TRANSACTION_TIMEOUT){
 	  if (Wire.requestFrom(DS3231_I2C_ADDR, 2) == 2) {
@@ -276,7 +273,6 @@ float DS3231_get_treg()
     }
 	if (!gotData)
     	return 0; // error timeout
-
 
     temp_msb = Wire.read();
     temp_lsb = Wire.read() >> 6;
@@ -342,7 +338,7 @@ void DS3231_get_a1(char *buf, const uint8_t len)
     Wire.write(DS3231_ALARM1_ADDR);
     Wire.endTransmission();
 
-	bool gotData = false;
+	uint8_t gotData = false;
 	uint32_t start = millis(); // start timeout
 	while(millis()-start < DS3231_TRANSACTION_TIMEOUT){
 	  if (Wire.requestFrom(DS3231_I2C_ADDR, 4) == 4) {
@@ -415,7 +411,7 @@ void DS3231_get_a2(char *buf, const uint8_t len)
     Wire.endTransmission();
 
     Wire.requestFrom(DS3231_I2C_ADDR, 4);
-	bool gotData = false;
+	uint8_t gotData = false;
 	uint32_t start = millis(); // start timeout
 	while(millis()-start < DS3231_TRANSACTION_TIMEOUT){
 	  if (Wire.requestFrom(DS3231_I2C_ADDR, 3) == 3) {
