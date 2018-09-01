@@ -7,7 +7,7 @@
    control/status registers, aging register
    - read of the temperature register, and of any address from the chip.
 
-  Author:          Petre Rodan <petre.rodan@gmail.com>
+  Author:          Petre Rodan <2b4eda@subdimension.ro>
   Available from:  https://github.com/rodan/ds3231
   License:         GNU GPLv3
 
