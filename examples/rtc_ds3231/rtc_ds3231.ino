@@ -1,6 +1,7 @@
 
 #include <Wire.h>
 #include "ds3231.h"
+#include"Time.h"
 
 #define BUFF_MAX 128
 
