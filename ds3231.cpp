@@ -1,4 +1,3 @@
-
 /*
   DS3231 library for the Arduino.
 
@@ -96,11 +95,9 @@ void DS3231_get(struct ts *t)
     uint8_t century = 0;
     uint8_t i, n;
     uint16_t year_full;
-
     Wire.beginTransmission(DS3231_I2C_ADDR);
     Wire.write(DS3231_TIME_CAL_ADDR);
     Wire.endTransmission();
-
 	uint8_t gotData = false;
 	uint32_t start = millis(); // start timeout
 	while(millis()-start < DS3231_TRANSACTION_TIMEOUT){
@@ -136,6 +133,7 @@ void DS3231_get(struct ts *t)
     t->year = year_full;
     t->wday = TimeDate[3];
     t->year_s = TimeDate[6];
+
 #ifdef CONFIG_UNIXTIME
     t->unixtime = get_unixtime(*t);
 #endif
@@ -174,10 +172,7 @@ uint8_t DS3231_get_addr(const uint8_t addr)
     return rv;
 }
 
-
-
 // control register
-
 void DS3231_set_creg(const uint8_t val)
 {
     DS3231_set_addr(DS3231_CONTROL_ADDR, val);
@@ -191,7 +186,6 @@ uint8_t DS3231_get_creg(void)
 }
 
 // status register 0Fh/8Fh
-
 /*
 bit7 OSF      Oscillator Stop Flag (if 1 then oscillator has stopped and date might be innacurate)
 bit3 EN32kHz  Enable 32kHz output (1 if needed)
@@ -213,7 +207,6 @@ uint8_t DS3231_get_sreg(void)
 }
 
 // aging register
-
 void DS3231_set_aging(const int8_t val)
 {
     uint8_t reg;
@@ -251,7 +244,6 @@ int8_t DS3231_get_aging(void)
 }
 
 // temperature register
-
 float DS3231_get_treg()
 {
     float rv;
@@ -330,8 +322,8 @@ void DS3231_set_a1(const uint8_t s, const uint8_t mi, const uint8_t h, const uin
 void DS3231_get_a1(char *buf, const uint8_t len)
 {
     uint8_t n[4];
-    uint8_t t[4];               //second,minute,hour,day
-    uint8_t f[5];               // flags
+    uint8_t t[4];//second,minute,hour,day
+    uint8_t f[5];// flags
     uint8_t i;
 
     Wire.beginTransmission(DS3231_I2C_ADDR);
